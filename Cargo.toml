@@ -26,3 +26,16 @@ tracing-appender = "0.2.2"
 
 vrsc-rpc = { path = "../rust-vrsc-rpc/client" }
 # vrsc-rpc = { git = "https://github.com/jorian/rust-vrsc-rpc" }
+
+[dependencies.serenity]
+default-features = false
+features = [
+    "builder",
+    "client",
+    "gateway",
+    "model",
+    "utils",
+    "collector",
+    "framework",
+]
+version = "0.12.0"

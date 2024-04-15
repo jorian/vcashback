@@ -35,6 +35,8 @@ async fn main() -> Result<()> {
     let handles = FuturesUnordered::new();
 
     let (discord_tx, discord_rx) = mpsc::unbounded_channel::<DiscordMessage>();
+    let token = _config.discord_token;
+    tokio::spawn(discord::run(token, discord_rx));
 
     for pbaas_config in pbaas_chain_configs()? {
         let (tx, rx) = mpsc::unbounded_channel::<ZMQMessage>();
@@ -104,6 +106,7 @@ impl CashbackChecker {
                             if self.tx_has_referral(&vout)? {
                                 // store tx in database
                                 // send message to discord
+                                self.tx.send(DiscordMessage::CashbackReceived).unwrap();
                             }
                         }
                     }

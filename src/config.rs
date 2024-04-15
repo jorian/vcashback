@@ -3,7 +3,9 @@ use serde::Deserialize;
 use serde_aux::field_attributes::deserialize_number_from_string;
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Config {}
+pub struct Config {
+    pub discord_token: String,
+}
 
 pub fn get_configuration() -> Result<Config> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
