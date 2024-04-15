@@ -1,0 +1,3 @@
+pub enum DiscordMessage {
+    CashbackReceived,
+}

@@ -1,20 +1,22 @@
 use std::str::FromStr;
 
-use color_eyre::eyre::Report;
+use anyhow::Result;
 use poise::serenity_prelude::futures::StreamExt;
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::*;
 use vrsc_rpc::bitcoin::BlockHash;
-use vrsc_rpc::json::vrsc::Address;
 
+#[instrument(level = "trace")]
 pub async fn listen_block_notifications(
-    url: &str,
-    chain: Address,
     tx: UnboundedSender<ZMQMessage>,
-) -> Result<(), Report> {
+    url: &str,
+    // chain: Address,
+) -> Result<()> {
     let mut socket = tmq::subscribe(&tmq::Context::new())
         .connect(url.as_ref())?
         .subscribe(b"hash")?;
+
+    info!("listening on {url}");
 
     loop {
         if let Some(Ok(msg)) = socket.next().await {
@@ -25,10 +27,7 @@ pub async fn listen_block_notifications(
                     .collect::<Vec<_>>()
                     .join("");
 
-                tx.send(ZMQMessage::NewBlock(
-                    chain.clone(),
-                    BlockHash::from_str(&block_hash)?,
-                ))?;
+                tx.send(ZMQMessage::NewBlock(BlockHash::from_str(&block_hash)?))?;
             } else {
                 error!("not a valid message!");
             }
@@ -40,5 +39,5 @@ pub async fn listen_block_notifications(
 
 #[derive(Debug)]
 pub enum ZMQMessage {
-    NewBlock(Address, BlockHash),
+    NewBlock(BlockHash),
 }

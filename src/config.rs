@@ -81,6 +81,7 @@ pub mod pbaas {
         pub rpc_port: u16,
         pub zmq_block_hash_url: String,
         pub currency_id: Address,
+        pub referral_currency_id: Address,
     }
 
     pub fn pbaas_chain_configs() -> Result<Vec<self::Config>> {

@@ -4,6 +4,7 @@ use vrsc_rpc::json::vrsc::Address;
 
 use crate::config::pbaas;
 
+#[derive(Debug)]
 pub struct Client {
     pub currency_id: Address,
     pub client: vrsc_rpc::client::Client,
