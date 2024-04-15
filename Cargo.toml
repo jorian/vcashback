@@ -39,3 +39,16 @@ features = [
     "framework",
 ]
 version = "0.12.0"
+
+[dependencies.sqlx]
+default-features = false
+features = [
+    "postgres",
+    "macros",
+    "bigdecimal",
+    "migrate",
+    "uuid",
+    "chrono",
+    "runtime-tokio-rustls",
+]
+version = "0.7.4"

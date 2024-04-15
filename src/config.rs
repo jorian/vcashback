@@ -1,10 +1,45 @@
 use anyhow::{anyhow, Context, Result};
+use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
 use serde_aux::field_attributes::deserialize_number_from_string;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub discord_token: String,
+    pub discord: DiscordConfig,
+    pub database: DbConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DiscordConfig {
+    pub token: String,
+    // pub channels: Map<String, u64>, // TODO
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DbConfig {
+    #[serde(rename = "name")]
+    pub db_name: String,
+    #[serde(rename = "password")]
+    pub db_pass: Secret<String>,
+    #[serde(rename = "user")]
+    pub db_user: String,
+    #[serde(rename = "host")]
+    pub db_host: String,
+    #[serde(rename = "port")]
+    pub db_port: u16,
+}
+
+impl DbConfig {
+    pub fn connection_string(&self) -> String {
+        format!(
+            "postgres://{}:{}@{}:{}/{}",
+            self.db_user,
+            self.db_pass.expose_secret(),
+            self.db_host,
+            self.db_port,
+            self.db_name
+        )
+    }
 }
 
 pub fn get_configuration() -> Result<Config> {

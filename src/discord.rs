@@ -1,9 +1,15 @@
+use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::Arc;
 
-use ::serenity::all::ChannelId;
+use anyhow::Result;
 use poise::serenity_prelude as serenity;
 use tokio::sync::mpsc;
 use tracing::*;
+use vrsc_rpc::bitcoin::Txid;
+use vrsc_rpc::json::vrsc::Address;
+
+use crate::config::DiscordConfig;
 
 struct Data {} // User data, which is stored and accessible in all command invocations
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -14,7 +20,21 @@ async fn age(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-pub async fn run(token: String, mut rx: mpsc::UnboundedReceiver<DiscordMessage>) {
+pub async fn run(
+    config: DiscordConfig,
+    mut rx: mpsc::UnboundedReceiver<DiscordMessage>,
+) -> Result<()> {
+    let token = config.token;
+    let mut channels = HashMap::new();
+    channels.insert(
+        Address::from_str("iJhCezBExJHvtyH3fGhNnt2NhU4Ztkf2yq")?,
+        1227894258216734782,
+    );
+    channels.insert(
+        Address::from_str("iExBJfZYK7KREDpuhj6PzZBzqMAKaFg7d2")?,
+        1227869235942785035,
+    );
+
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![age()],
@@ -25,14 +45,28 @@ pub async fn run(token: String, mut rx: mpsc::UnboundedReceiver<DiscordMessage>)
             tokio::spawn(async move {
                 while let Some(message) = rx.recv().await {
                     match message {
-                        DiscordMessage::CashbackReceived => {
+                        DiscordMessage::CashbackInitiated(currency_id, (name, nameid)) => {
                             info!("got message to send to discord");
 
-                            // vrsctest
-                            ChannelId::new(1227894258216734782)
+                            let channel_id = channels.get(&currency_id).unwrap();
+                            serenity::ChannelId::new(*channel_id)
                                 .send_message(
                                     &http,
-                                    serenity::CreateMessage::new().content("Kaching"),
+                                    serenity::CreateMessage::new().content(format!(
+                                        ":sparkles:  **{}@** ({}) initiated cashback",
+                                        name, nameid
+                                    )),
+                                )
+                                .await
+                                .unwrap();
+                        }
+                        DiscordMessage::CashbackProcessed(currency_id, (name, name_id), txid) => {
+                            let channel_id = channels.get(&currency_id).unwrap();
+                            serenity::ChannelId::new(*channel_id)
+                                .send_message(
+                                    &http,
+                                    serenity::CreateMessage::new()
+                                        .content(format!(":moneybag:  Cashback processed for **{name}@** ({name_id}): [{txid}]")),
                                 )
                                 .await
                                 .unwrap();
@@ -56,9 +90,12 @@ pub async fn run(token: String, mut rx: mpsc::UnboundedReceiver<DiscordMessage>)
         .framework(framework)
         .await;
 
-    client.unwrap().start().await.unwrap();
+    client?.start().await?;
+
+    Ok(())
 }
 
 pub enum DiscordMessage {
-    CashbackReceived,
+    CashbackInitiated(Address, (String, Address)),
+    CashbackProcessed(Address, (String, Address), Txid),
 }

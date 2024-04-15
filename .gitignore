@@ -1,6 +1,8 @@
 /target
 config.toml
-/pbaas/*
-/config/*
+/pbaas/*.toml
+/config/*.toml
 /logs
 /.vscode
+.env
+/bin
