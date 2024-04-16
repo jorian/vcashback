@@ -25,13 +25,20 @@ pub async fn run(
 ) -> Result<()> {
     let token = config.token;
     let mut channels = HashMap::new();
+    // vrsctest
     channels.insert(
         Address::from_str("iJhCezBExJHvtyH3fGhNnt2NhU4Ztkf2yq")?,
         1227894258216734782,
     );
+    // varrr
     channels.insert(
         Address::from_str("iExBJfZYK7KREDpuhj6PzZBzqMAKaFg7d2")?,
         1227869235942785035,
+    );
+    // vrsc
+    channels.insert(
+        Address::from_str("i5w5MuNik5NtLcYmNzcvaoixooEebB6MGV")?,
+        1227869218750337066,
     );
 
     let framework = poise::Framework::builder()

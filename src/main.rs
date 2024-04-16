@@ -73,6 +73,8 @@ pub struct CashbackChecker {
     client: Client,
     referral_id: Address,
     explorer_url: String,
+    fee: u64,
+    referral_amount: u64,
     rx: mpsc::UnboundedReceiver<ZMQMessage>,
     tx: mpsc::UnboundedSender<DiscordMessage>,
 }
@@ -88,6 +90,8 @@ impl CashbackChecker {
         let currency_id = config.currency_id.clone();
         let referral_id = config.referral_currency_id.clone();
         let explorer_url = config.explorer_url.clone();
+        let referral_amount = config.referral_amount;
+        let fee = config.fee;
 
         Ok(Self {
             pool,
@@ -95,6 +99,8 @@ impl CashbackChecker {
             client,
             referral_id,
             explorer_url,
+            fee,
+            referral_amount,
             rx,
             tx,
         })
@@ -194,7 +200,7 @@ impl CashbackChecker {
                 "*",
                 vec![SendCurrencyOutput {
                     currency: None,
-                    amount: Amount::from_sat(57_0000_0000), // TODO make this configurable
+                    amount: Amount::from_sat(self.referral_amount - self.fee), // TODO make this configurable
                     address: cashback.name_id.to_string(),
                 }],
                 None,
