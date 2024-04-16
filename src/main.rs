@@ -191,7 +191,7 @@ impl CashbackChecker {
                 "*",
                 vec![SendCurrencyOutput {
                     currency: None,
-                    amount: Amount::from_sat(60_0000_0000), // TODO make this configurable
+                    amount: Amount::from_sat(59_0000_0000), // TODO make this configurable
                     address: cashback.name_id.to_string(),
                 }],
                 None,
