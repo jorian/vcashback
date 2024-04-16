@@ -72,6 +72,7 @@ pub struct CashbackChecker {
     currency_id: Address,
     client: Client,
     referral_id: Address,
+    explorer_url: String,
     rx: mpsc::UnboundedReceiver<ZMQMessage>,
     tx: mpsc::UnboundedSender<DiscordMessage>,
 }
@@ -86,12 +87,14 @@ impl CashbackChecker {
         let client: Client = config.clone().try_into()?;
         let currency_id = config.currency_id.clone();
         let referral_id = config.referral_currency_id.clone();
+        let explorer_url = config.explorer_url.clone();
 
         Ok(Self {
             pool,
             currency_id,
             client,
             referral_id,
+            explorer_url,
             rx,
             tx,
         })
@@ -191,7 +194,7 @@ impl CashbackChecker {
                 "*",
                 vec![SendCurrencyOutput {
                     currency: None,
-                    amount: Amount::from_sat(59_0000_0000), // TODO make this configurable
+                    amount: Amount::from_sat(57_0000_0000), // TODO make this configurable
                     address: cashback.name_id.to_string(),
                 }],
                 None,
@@ -213,7 +216,7 @@ impl CashbackChecker {
                     .send(DiscordMessage::CashbackProcessed(
                         self.currency_id.clone(),
                         (cashback.name.clone(), cashback.name_id.clone()),
-                        txid,
+                        format!("{}{}", self.explorer_url, txid),
                     ))
                     .unwrap();
             }

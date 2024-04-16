@@ -6,7 +6,6 @@ use anyhow::Result;
 use poise::serenity_prelude as serenity;
 use tokio::sync::mpsc;
 use tracing::*;
-use vrsc_rpc::bitcoin::Txid;
 use vrsc_rpc::json::vrsc::Address;
 
 use crate::config::DiscordConfig;
@@ -60,13 +59,13 @@ pub async fn run(
                                 .await
                                 .unwrap();
                         }
-                        DiscordMessage::CashbackProcessed(currency_id, (name, name_id), txid) => {
+                        DiscordMessage::CashbackProcessed(currency_id, (name, name_id), explorer_link) => {
                             let channel_id = channels.get(&currency_id).unwrap();
                             serenity::ChannelId::new(*channel_id)
                                 .send_message(
                                     &http,
                                     serenity::CreateMessage::new()
-                                        .content(format!(":moneybag:  Cashback processed for **{name}@** ({name_id}): [{txid}]")),
+                                        .content(format!(":moneybag:  Cashback processed for **{name}@** ({name_id}): [{explorer_link}]")),
                                 )
                                 .await
                                 .unwrap();
@@ -97,5 +96,5 @@ pub async fn run(
 
 pub enum DiscordMessage {
     CashbackInitiated(Address, (String, Address)),
-    CashbackProcessed(Address, (String, Address), Txid),
+    CashbackProcessed(Address, (String, Address), String),
 }

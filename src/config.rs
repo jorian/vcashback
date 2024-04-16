@@ -119,6 +119,7 @@ pub mod pbaas {
         pub zmq_block_hash_url: String,
         pub currency_id: Address,
         pub referral_currency_id: Address,
+        pub explorer_url: String,
     }
 
     pub fn pbaas_chain_configs() -> Result<Vec<self::Config>> {
