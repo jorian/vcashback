@@ -36,7 +36,8 @@ mod zmq;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    logging()?;
+    setup_logging()?;
+
     let config = get_configuration()?;
     let pg_url = &config.database.connection_string();
     let pool = PgPool::connect_lazy(pg_url)?;
@@ -189,8 +190,8 @@ impl CashbackChecker {
                 99999999,
             )?;
 
-            if (blockheight - identity_hist.blockheight as u64) < 6 {
-                // wait 6 confirmations until payment
+            if (blockheight - identity_hist.blockheight as u64) < 10 {
+                // wait 10 confirmations until payment
                 return Ok(());
             }
 
@@ -198,11 +199,22 @@ impl CashbackChecker {
 
             let opid = self.client.client.send_currency(
                 "*",
-                vec![SendCurrencyOutput {
-                    currency: None,
-                    amount: Amount::from_sat(self.referral_amount - self.fee), // TODO make this configurable
-                    address: cashback.name_id.to_string(),
-                }],
+                vec![
+                    SendCurrencyOutput {
+                        currency: None,
+                        amount: Amount::from_sat(self.referral_amount - self.fee),
+                        address: cashback.name_id.to_string(),
+                        convertto: None,
+                        via: None,
+                    },
+                    SendCurrencyOutput {
+                        currency: None,
+                        amount: Amount::from_sat(self.fee - 20000),
+                        address: self.referral_id.to_string(),
+                        convertto: None,
+                        via: None,
+                    },
+                ],
                 None,
                 None,
             )?;
@@ -232,7 +244,7 @@ impl CashbackChecker {
     }
 }
 
-fn logging() -> Result<()> {
+fn setup_logging() -> Result<()> {
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var(
             "RUST_LOG",
